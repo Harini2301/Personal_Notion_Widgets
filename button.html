@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Button Styles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1B1F3B;
+    --card:#242952;
+    --card-edge:#2F356B;
+    --field:#1F2447;
+    --text:#F1EEE5;
+    --muted:#9098C4;
+    --muted-dim:#6870A0;
+    --accent:#E8C468;
+    --urgent:#E8734A;
+    --safe:#6C9BC4;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; padding:0;
+    background:var(--bg);
+    font-family:'Inter',sans-serif;
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+  .widget{
+    width:100%;
+    max-width:720px;
+    margin:0 auto;
+    padding:36px 28px 56px;
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:26px;
+    margin:0 0 6px;
+  }
+  .sub{
+    font-size:12.5px;
+    color:var(--muted-dim);
+    margin-bottom:30px;
+  }
+  section{ margin-bottom:32px; }
+  .label{
+    font-size:11px;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--muted);
+    font-weight:600;
+    margin-bottom:12px;
+  }
+  .row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    align-items:center;
+  }
+
+  /* base reset */
+  button{
+    font-family:'Inter',sans-serif;
+    cursor:pointer;
+  }
+
+  /* 1. Primary */
+  .btn-primary{
+    background:var(--accent);
+    color:var(--bg);
+    border:none;
+    border-radius:12px;
+    padding:12px 26px;
+    font-size:14px;
+    font-weight:700;
+  }
+  .btn-primary:hover{ opacity:0.9; }
+  .btn-primary:active{ transform:scale(0.97); }
+
+  /* 2. Secondary / outline */
+  .btn-secondary{
+    background:var(--field);
+    color:var(--muted);
+    border:1px solid var(--card-edge);
+    border-radius:12px;
+    padding:12px 26px;
+    font-size:14px;
+    font-weight:600;
+  }
+  .btn-secondary:hover{ color:var(--text); border-color:var(--muted); }
+
+  /* 3. Ghost / text-only */
+  .btn-ghost{
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:13px;
+    font-weight:600;
+    padding:8px 4px;
+    text-decoration:underline;
+    text-underline-offset:3px;
+  }
+  .btn-ghost:hover{ color:var(--text); }
+
+  /* 4. Icon button (circular) */
+  .btn-icon{
+    width:40px; height:40px;
+    border-radius:50%;
+    background:var(--field);
+    border:1px solid var(--card-edge);
+    color:var(--muted);
+    font-size:16px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .btn-icon:hover{ color:var(--text); border-color:var(--muted); }
+  .btn-icon.filled{ background:var(--accent); color:var(--bg); border:none; }
+
+  /* 5. Pill toggle group */
+  .pill-group{
+    display:inline-flex;
+    background:var(--field);
+    border:1px solid var(--card-edge);
+    border-radius:10px;
+    padding:3px;
+    gap:3px;
+  }
+  .pill-btn{
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:12px;
+    font-weight:600;
+    padding:7px 14px;
+    border-radius:8px;
+  }
+  .pill-btn.active{ background:var(--accent); color:var(--bg); }
+
+  /* 6. Chip / tag toggle */
+  .chip{
+    background:none;
+    border:1px solid var(--card-edge);
+    color:var(--muted);
+    font-size:11px;
+    font-weight:600;
+    letter-spacing:0.03em;
+    text-transform:uppercase;
+    padding:7px 14px;
+    border-radius:20px;
+  }
+  .chip.active{ background:var(--card-edge); color:var(--text); }
+
+  /* 7. Danger / destructive */
+  .btn-danger{
+    background:none;
+    border:1px solid var(--urgent);
+    color:var(--urgent);
+    border-radius:12px;
+    padding:12px 26px;
+    font-size:14px;
+    font-weight:600;
+  }
+  .btn-danger:hover{ background:var(--urgent); color:var(--bg); }
+
+  /* 8. Disabled */
+  .btn-disabled{
+    background:var(--field);
+    color:var(--muted-dim);
+    border:1px solid var(--card-edge);
+    border-radius:12px;
+    padding:12px 26px;
+    font-size:14px;
+    font-weight:600;
+    cursor:not-allowed;
+    opacity:0.5;
+  }
+
+  /* 9. Loading */
+  .btn-loading{
+    background:var(--accent);
+    color:var(--bg);
+    border:none;
+    border-radius:12px;
+    padding:12px 26px;
+    font-size:14px;
+    font-weight:700;
+    display:inline-flex;
+    align-items:center;
+    gap:9px;
+    cursor:progress;
+  }
+  .spinner{
+    width:13px; height:13px;
+    border-radius:50%;
+    border:2px solid rgba(27,31,59,0.3);
+    border-top-color:var(--bg);
+    animation:spin 0.7s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  /* 10. Floating action button (FAB) */
+  .btn-fab{
+    width:52px; height:52px;
+    border-radius:50%;
+    background:var(--accent);
+    border:none;
+    color:var(--bg);
+    font-size:22px;
+    font-weight:700;
+    box-shadow:0 10px 25px rgba(232,196,104,0.25);
+  }
+  .btn-fab:hover{ transform:translateY(-2px); }
+
+  /* 11. Small inline icon+label */
+  .btn-inline{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:var(--field);
+    border:1px solid var(--card-edge);
+    color:var(--muted);
+    border-radius:9px;
+    padding:8px 14px;
+    font-size:12.5px;
+    font-weight:600;
+  }
+  .btn-inline:hover{ color:var(--text); border-color:var(--muted); }
+
+  /* 12. Gradient accent (for hero CTAs) */
+  .btn-gradient{
+    background:linear-gradient(135deg, var(--accent), var(--urgent));
+    color:var(--bg);
+    border:none;
+    border-radius:12px;
+    padding:13px 28px;
+    font-size:14px;
+    font-weight:700;
+  }
+  .btn-gradient:hover{ filter:brightness(1.05); }
+
+</style>
+</head>
+<body>
+
+<div class="widget">
+  <h1>Button Kit</h1>
+  <div class="sub">Reusable button styles — same visual system across every widget</div>
+
+  <section>
+    <div class="label">Primary / Secondary</div>
+    <div class="row">
+      <button class="btn-primary">Save changes</button>
+      <button class="btn-secondary">Cancel</button>
+      <button class="btn-ghost">Skip for now</button>
+    </div>
+  </section>
+
+  <section>
+    <div class="label">Icon buttons</div>
+    <div class="row">
+      <button class="btn-icon">+</button>
+      <button class="btn-icon">✎</button>
+      <button class="btn-icon">✕</button>
+      <button class="btn-icon filled">✓</button>
+    </div>
+  </section>
+
+  <section>
+    <div class="label">Pill toggle group (e.g. horizontal/vertical, view switch)</div>
+    <div class="row">
+      <div class="pill-group">
+        <button class="pill-btn active">Week</button>
+        <button class="pill-btn">Month</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="label">Filter chips (e.g. category tabs)</div>
+    <div class="row">
+      <button class="chip active">All</button>
+      <button class="chip">Academic</button>
+      <button class="chip">Personal</button>
+      <button class="chip">Errand</button>
+    </div>
+  </section>
+
+  <section>
+    <div class="label">Danger / Disabled / Loading</div>
+    <div class="row">
+      <button class="btn-danger">Delete habit</button>
+      <button class="btn-disabled" disabled>Unavailable</button>
+      <button class="btn-loading"><span class="spinner"></span>Saving…</button>
+    </div>
+  </section>
+
+  <section>
+    <div class="label">Floating action button</div>
+    <div class="row">
+      <button class="btn-fab">+</button>
+    </div>
+  </section>
+
+  <section>
+    <div class="label">Inline icon + label</div>
+    <div class="row">
+      <button class="btn-inline">📎 Attach file</button>
+      <button class="btn-inline">🔗 Copy link</button>
+      <button class="btn-inline">⏱ Start timer</button>
+    </div>
+  </section>
+
+  <section>
+    <div class="label">Gradient CTA (for hero/landing sections)</div>
+    <div class="row">
+      <button class="btn-gradient">Get started →</button>
+    </div>
+  </section>
+
+</div>
+
+</body>
+</html>
