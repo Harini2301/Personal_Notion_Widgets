@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Timetable</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1B1F3B;
+    --card:#242952;
+    --card-edge:#2F356B;
+    --field:#1F2447;
+    --text:#F1EEE5;
+    --muted:#9098C4;
+    --muted-dim:#6870A0;
+    --accent:#E8C468;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; padding:0;
+    background:var(--bg);
+    font-family:'Inter',sans-serif;
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+  .widget{
+    width:100%;
+    max-width:760px;
+    margin:0 auto;
+    padding:32px 26px 46px;
+  }
+  .header{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:6px;
+  }
+  .header h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:26px;
+    margin:0;
+  }
+  .subtext{
+    font-size:11.5px;
+    color:var(--muted-dim);
+    margin-bottom:20px;
+  }
+
+  .grid-wrap{ overflow-x:auto; }
+  .grid{
+    display:grid;
+    grid-template-columns: 62px repeat(6, 1fr);
+    gap:5px;
+    min-width:640px;
+  }
+  .corner{}
+  .day-head{
+    text-align:center;
+    padding:6px 0 10px;
+    font-size:11.5px;
+    letter-spacing:0.05em;
+    text-transform:uppercase;
+    color:var(--muted);
+    font-weight:600;
+  }
+  .time-label{
+    display:flex;
+    align-items:flex-start;
+    justify-content:flex-end;
+    padding:6px 6px 0 0;
+    font-size:10.5px;
+    color:var(--muted-dim);
+  }
+  .cell{
+    background:var(--field);
+    border:1px solid var(--card-edge);
+    border-radius:8px;
+    min-height:46px;
+    cursor:pointer;
+    padding:6px 7px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    transition:border-color .15s ease;
+  }
+  .cell:hover{ border-color:var(--muted-dim); }
+  .cell.filled{
+    border:none;
+  }
+  .cell .class-name{
+    font-size:11.5px;
+    font-weight:700;
+    color:#1B1F3B;
+    line-height:1.2;
+  }
+  .cell .class-loc{
+    font-size:9.5px;
+    color:#1B1F3B;
+    opacity:0.75;
+    margin-top:1px;
+  }
+
+  .legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:18px;
+  }
+  .legend-chip{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    font-size:11px;
+    color:var(--muted);
+    background:var(--card);
+    border:1px solid var(--card-edge);
+    padding:5px 10px;
+    border-radius:20px;
+  }
+  .legend-dot{
+    width:9px; height:9px;
+    border-radius:50%;
+    flex-shrink:0;
+  }
+
+  /* ---- Editor popover ---- */
+  .overlay{
+    display:none;
+    position:fixed;
+    top:0; left:0; right:0; bottom:0;
+    background:rgba(10,12,30,0.55);
+    align-items:center;
+    justify-content:center;
+    z-index:10;
+  }
+  .overlay.open{ display:flex; }
+  .editor{
+    background:var(--card);
+    border:1px solid var(--card-edge);
+    border-radius:16px;
+    padding:20px;
+    width:280px;
+  }
+  .editor h3{
+    font-family:'Fraunces',serif;
+    font-size:16px;
+    margin:0 0 14px;
+    font-weight:600;
+  }
+  .editor input{
+    width:100%;
+    background:var(--field);
+    border:1px solid var(--card-edge);
+    border-radius:9px;
+    padding:10px 12px;
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    outline:none;
+    margin-bottom:10px;
+  }
+  .editor input::placeholder{ color:var(--muted-dim); }
+  .color-row{
+    display:flex;
+    gap:7px;
+    margin-bottom:16px;
+  }
+  .color-dot{
+    width:24px; height:24px;
+    border-radius:50%;
+    cursor:pointer;
+    border:2px solid transparent;
+  }
+  .color-dot.selected{
+    border-color:var(--text);
+  }
+  .editor-actions{
+    display:flex;
+    gap:8px;
+  }
+  .editor-actions button{
+    flex:1;
+    border:none;
+    border-radius:9px;
+    padding:10px;
+    font-size:12.5px;
+    font-weight:700;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .save-btn{ background:var(--accent); color:var(--bg); }
+  .clear-btn{ background:var(--field); color:var(--muted); border:1px solid var(--card-edge) !important; }
+  .cancel-btn{ background:none; color:var(--muted-dim); }
+</style>
+</head>
+<body>
+
+<div class="widget">
+  <div class="header"><h1>Timetable</h1></div>
+  <div class="subtext">Tap any slot to add or edit a class</div>
+
+  <div class="grid-wrap">
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="legend" id="legend"></div>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="editor">
+    <h3 id="editorTitle">Add class</h3>
+    <input type="text" id="classNameInput" placeholder="Class name (e.g. Chemistry)">
+    <input type="text" id="classLocInput" placeholder="Room / link (optional)">
+    <div class="color-row" id="colorRow"></div>
+    <div class="editor-actions">
+      <button class="clear-btn" id="clearBtn">Clear</button>
+      <button class="cancel-btn" id="cancelBtn">Cancel</button>
+      <button class="save-btn" id="saveBtn">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'timetableWidget';
+  const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat'];
+  const START_HOUR = 8;
+  const END_HOUR = 18; // exclusive
+  const COLORS = ['#C87FA0','#6C9BC4','#8FBF8F','#E8A468','#E8C468','#B08FD6'];
+
+  function hourLabel(h){
+    const period = h < 12 ? 'AM' : 'PM';
+    const hr = h % 12 === 0 ? 12 : h % 12;
+    return `${hr} ${period}`;
+  }
+
+  function load(){
+    try{
+      const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if(s && typeof s === 'object') return s;
+    }catch(e){}
+    return {}; // key: "dayIdx-hour" -> {name, loc, color}
+  }
+  function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+  let state = load();
+  let currentKey = null;
+  let selectedColor = COLORS[0];
+
+  function render(){
+    const grid = document.getElementById('grid');
+    let html = '<div class="corner"></div>';
+    DAYS.forEach(d => html += `<div class="day-head">${d}</div>`);
+
+    for(let h = START_HOUR; h < END_HOUR; h++){
+      html += `<div class="time-label">${hourLabel(h)}</div>`;
+      for(let d = 0; d < DAYS.length; d++){
+        const key = `${d}-${h}`;
+        const entry = state[key];
+        if(entry){
+          html += `<div class="cell filled" style="background:${entry.color}" data-key="${key}">
+            <div class="class-name">${escapeHtml(entry.name)}</div>
+            ${entry.loc ? `<div class="class-loc">${escapeHtml(entry.loc)}</div>` : ''}
+          </div>`;
+        } else {
+          html += `<div class="cell" data-key="${key}"></div>`;
+        }
+      }
+    }
+    grid.innerHTML = html;
+    grid.querySelectorAll('.cell').forEach(cell=>{
+      cell.addEventListener('click', ()=> openEditor(cell.dataset.key));
+    });
+
+    renderLegend();
+  }
+
+  function renderLegend(){
+    const names = new Set();
+    const legendItems = [];
+    Object.values(state).forEach(e=>{
+      if(!names.has(e.name)){
+        names.add(e.name);
+        legendItems.push(e);
+      }
+    });
+    const legend = document.getElementById('legend');
+    if(legendItems.length===0){ legend.innerHTML=''; return; }
+    legend.innerHTML = legendItems.map(e=>`
+      <div class="legend-chip"><span class="legend-dot" style="background:${e.color}"></span>${escapeHtml(e.name)}</div>
+    `).join('');
+  }
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function openEditor(key){
+    currentKey = key;
+    const entry = state[key];
+    document.getElementById('editorTitle').textContent = entry ? 'Edit class' : 'Add class';
+    document.getElementById('classNameInput').value = entry ? entry.name : '';
+    document.getElementById('classLocInput').value = entry ? entry.loc || '' : '';
+    selectedColor = entry ? entry.color : COLORS[Math.floor(Math.random()*COLORS.length)];
+    renderColorRow();
+    document.getElementById('overlay').classList.add('open');
+    document.getElementById('classNameInput').focus();
+  }
+
+  function renderColorRow(){
+    const row = document.getElementById('colorRow');
+    row.innerHTML = COLORS.map(c=>`
+      <div class="color-dot ${c===selectedColor?'selected':''}" style="background:${c}" data-color="${c}"></div>
+    `).join('');
+    row.querySelectorAll('.color-dot').forEach(dot=>{
+      dot.addEventListener('click', ()=>{
+        selectedColor = dot.dataset.color;
+        renderColorRow();
+      });
+    });
+  }
+
+  document.getElementById('saveBtn').addEventListener('click', ()=>{
+    const name = document.getElementById('classNameInput').value.trim();
+    if(!name){ closeEditor(); return; }
+    const loc = document.getElementById('classLocInput').value.trim();
+    state[currentKey] = { name, loc, color: selectedColor };
+    save();
+    closeEditor();
+    render();
+  });
+  document.getElementById('clearBtn').addEventListener('click', ()=>{
+    delete state[currentKey];
+    save();
+    closeEditor();
+    render();
+  });
+  document.getElementById('cancelBtn').addEventListener('click', closeEditor);
+  document.getElementById('overlay').addEventListener('click', (e)=>{
+    if(e.target.id === 'overlay') closeEditor();
+  });
+
+  function closeEditor(){
+    document.getElementById('overlay').classList.remove('open');
+    currentKey = null;
+  }
+
+  render();
+</script>
+
+</body>
+</html>
