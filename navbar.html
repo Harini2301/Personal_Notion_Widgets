@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Navbar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1B1F3B;
+    --card:#242952;
+    --card-edge:#2F356B;
+    --field:#1F2447;
+    --text:#F1EEE5;
+    --muted:#9098C4;
+    --muted-dim:#6870A0;
+    --accent:#E8C468;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; padding:0;
+    background:var(--bg);
+    font-family:'Inter',sans-serif;
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+  .widget{
+    width:100%;
+    max-width:640px;
+    margin:0 auto;
+    padding:28px 24px 40px;
+  }
+  .top-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:18px;
+  }
+  .brand{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:16px;
+    color:var(--muted);
+  }
+  .mode-toggle{
+    display:flex;
+    gap:4px;
+    background:var(--field);
+    border:1px solid var(--card-edge);
+    border-radius:10px;
+    padding:3px;
+  }
+  .mode-btn{
+    font-size:11px;
+    font-weight:600;
+    padding:6px 12px;
+    border-radius:8px;
+    color:var(--muted);
+    cursor:pointer;
+    border:none;
+    background:none;
+    font-family:'Inter',sans-serif;
+  }
+  .mode-btn.active{
+    background:var(--accent);
+    color:var(--bg);
+  }
+
+  /* ---- Horizontal nav ---- */
+  .nav-horizontal{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    background:var(--card);
+    border:1px solid var(--card-edge);
+    border-radius:16px;
+    padding:8px;
+  }
+  .nav-horizontal .nav-item{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    padding:10px 16px;
+    border-radius:11px;
+    text-decoration:none;
+    color:var(--muted);
+    font-size:13px;
+    font-weight:600;
+    transition:background .15s ease, color .15s ease;
+  }
+  .nav-horizontal .nav-item:hover{ background:var(--field); color:var(--text); }
+  .nav-horizontal .nav-item.active-tab{ background:var(--accent); color:var(--bg); }
+
+  /* ---- Vertical nav ---- */
+  .nav-vertical{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    background:var(--card);
+    border:1px solid var(--card-edge);
+    border-radius:16px;
+    padding:10px;
+    max-width:220px;
+  }
+  .nav-vertical .nav-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:11px 14px;
+    border-radius:10px;
+    text-decoration:none;
+    color:var(--muted);
+    font-size:13.5px;
+    font-weight:600;
+    transition:background .15s ease, color .15s ease;
+  }
+  .nav-vertical .nav-item:hover{ background:var(--field); color:var(--text); }
+  .nav-vertical .nav-item.active-tab{ background:var(--accent); color:var(--bg); }
+
+  .nav-icon{ font-size:15px; width:18px; text-align:center; flex-shrink:0; }
+  .nav-remove{
+    margin-left:auto;
+    background:none;
+    border:none;
+    color:inherit;
+    opacity:0;
+    font-size:11px;
+    cursor:pointer;
+    padding:2px;
+  }
+  .nav-item:hover .nav-remove{ opacity:0.6; }
+  .nav-remove:hover{ opacity:1 !important; }
+
+  .add-toggle{
+    margin-top:14px;
+    background:var(--field);
+    border:1px dashed var(--card-edge);
+    border-radius:12px;
+    padding:10px 16px;
+    color:var(--muted);
+    font-size:12px;
+    font-weight:600;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .add-toggle:hover{ color:var(--text); border-color:var(--muted); }
+
+  .add-form{
+    display:none;
+    gap:8px;
+    background:var(--card);
+    border:1px solid var(--card-edge);
+    border-radius:14px;
+    padding:14px;
+    margin-top:10px;
+    flex-wrap:wrap;
+  }
+  .add-form.open{ display:flex; }
+  .add-form input{
+    background:var(--field);
+    border:1px solid var(--card-edge);
+    border-radius:9px;
+    padding:9px 11px;
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    font-size:12.5px;
+    outline:none;
+  }
+  .add-form input::placeholder{ color:var(--muted-dim); }
+  #navIconInput{ width:50px; text-align:center; flex:0 0 50px; }
+  #navLabelInput{ flex:1; min-width:100px; }
+  #navUrlInput{ flex:1; min-width:160px; }
+  .add-form .save-btn{
+    background:var(--accent);
+    border:none;
+    border-radius:9px;
+    padding:9px 16px;
+    color:var(--bg);
+    font-weight:700;
+    font-size:12.5px;
+    cursor:pointer;
+  }
+</style>
+</head>
+<body>
+
+<div class="widget">
+  <div class="top-row">
+    <span class="brand">workspace</span>
+    <div class="mode-toggle">
+      <button class="mode-btn active" data-mode="horizontal">Horizontal</button>
+      <button class="mode-btn" data-mode="vertical">Vertical</button>
+    </div>
+  </div>
+
+  <div id="navContainer"></div>
+
+  <button class="add-toggle" id="addToggle">+ Add tab</button>
+  <div class="add-form" id="addForm">
+    <input type="text" id="navIconInput" placeholder="🏠" maxlength="2">
+    <input type="text" id="navLabelInput" placeholder="Label (e.g. Notes)">
+    <input type="text" id="navUrlInput" placeholder="Paste Notion page link…">
+    <button class="save-btn" id="saveNavBtn">Add</button>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'navbarWidget';
+
+  function load(){
+    try{
+      const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if(s && Array.isArray(s.tabs)) return s;
+    }catch(e){}
+    return {
+      mode: 'horizontal',
+      activeId: 1,
+      tabs: [
+        { id:1, icon:'🏠', label:'Dashboard', url:'#' },
+        { id:2, icon:'📝', label:'Notes', url:'#' },
+        { id:3, icon:'✅', label:'Tasks', url:'#' },
+        { id:4, icon:'🔥', label:'Habits', url:'#' },
+      ]
+    };
+  }
+  function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+  let state = load();
+
+  function render(){
+    document.querySelectorAll('.mode-btn').forEach(b=>{
+      b.classList.toggle('active', b.dataset.mode === state.mode);
+    });
+
+    const container = document.getElementById('navContainer');
+    const wrapClass = state.mode === 'horizontal' ? 'nav-horizontal' : 'nav-vertical';
+
+    container.innerHTML = `<div class="${wrapClass}">` + state.tabs.map(t => `
+      <a class="nav-item ${t.id===state.activeId?'active-tab':''}" href="${t.url}" data-id="${t.id}">
+        <span class="nav-icon">${t.icon || '•'}</span>
+        <span>${escapeHtml(t.label)}</span>
+        <button class="nav-remove" data-remove="${t.id}">✕</button>
+      </a>
+    `).join('') + `</div>`;
+
+    container.querySelectorAll('.nav-item').forEach(el=>{
+      el.addEventListener('click', (e)=>{
+        if(e.target.closest('.nav-remove')) return;
+        if(el.getAttribute('href') === '#') e.preventDefault();
+        state.activeId = Number(el.dataset.id);
+        save();
+        render();
+      });
+    });
+    container.querySelectorAll('[data-remove]').forEach(btn=>{
+      btn.addEventListener('click', (e)=>{
+        e.preventDefault();
+        e.stopPropagation();
+        const id = Number(btn.dataset.remove);
+        state.tabs = state.tabs.filter(t=>t.id!==id);
+        save();
+        render();
+      });
+    });
+  }
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  document.querySelectorAll('.mode-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      state.mode = btn.dataset.mode;
+      save();
+      render();
+    });
+  });
+
+  document.getElementById('addToggle').addEventListener('click', ()=>{
+    document.getElementById('addForm').classList.toggle('open');
+  });
+
+  document.getElementById('saveNavBtn').addEventListener('click', ()=>{
+    const icon = document.getElementById('navIconInput').value.trim() || '📌';
+    const label = document.getElementById('navLabelInput').value.trim();
+    const url = document.getElementById('navUrlInput').value.trim() || '#';
+    if(!label) return;
+    state.tabs.push({ id: Date.now(), icon, label, url });
+    save();
+    document.getElementById('navIconInput').value = '';
+    document.getElementById('navLabelInput').value = '';
+    document.getElementById('navUrlInput').value = '';
+    document.getElementById('addForm').classList.remove('open');
+    render();
+  });
+
+  render();
+</script>
+
+</body>
+</html>
