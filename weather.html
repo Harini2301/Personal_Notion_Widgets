@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weather</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1B1F3B;
+    --card:#242952;
+    --card-edge:#2F356B;
+    --field:#1F2447;
+    --text:#F1EEE5;
+    --muted:#9098C4;
+    --muted-dim:#6870A0;
+    --accent:#E8C468;
+    --sun:#E8C468;
+    --cloud:#9098C4;
+    --rain:#6C9BC4;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; padding:0;
+    background:var(--bg);
+    font-family:'Inter',sans-serif;
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+  .widget{
+    width:100%;
+    max-width:360px;
+    margin:0 auto;
+    padding:40px 24px;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .card{
+    width:100%;
+    text-align:center;
+    background:var(--card);
+    border:1px solid var(--card-edge);
+    border-radius:22px;
+    padding:34px 28px;
+  }
+  .place{
+    font-size:12px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--muted);
+    font-weight:600;
+    margin-bottom:18px;
+  }
+  .loading{
+    color:var(--muted-dim);
+    font-size:13px;
+    padding:30px 0;
+  }
+  .icon-wrap{ margin-bottom:14px; }
+  .temp{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:58px;
+    line-height:1;
+    margin:0 0 6px;
+  }
+  .range{
+    font-size:12px;
+    color:var(--muted);
+    margin-bottom:20px;
+  }
+  .sentence{
+    font-family:'Fraunces',serif;
+    font-size:18px;
+    font-weight:500;
+    line-height:1.4;
+    color:var(--text);
+    margin:0 0 18px;
+    padding:0 6px;
+  }
+  .tip{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    background:var(--field);
+    border:1px solid var(--card-edge);
+    border-radius:20px;
+    padding:9px 16px;
+    font-size:13px;
+    color:var(--muted);
+  }
+  .error{
+    color:var(--muted-dim);
+    font-size:13px;
+    padding:10px 0 18px;
+  }
+  .retry-btn{
+    margin-top:4px;
+    background:var(--accent);
+    border:none;
+    border-radius:10px;
+    padding:10px 20px;
+    color:var(--bg);
+    font-weight:600;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .city-search{
+    margin-top:16px;
+    display:flex;
+    gap:8px;
+  }
+  .city-search input{
+    flex:1;
+    background:var(--field);
+    border:1px solid var(--card-edge);
+    border-radius:10px;
+    padding:10px 12px;
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    outline:none;
+  }
+  .city-search input::placeholder{ color:var(--muted-dim); }
+  .city-search button{
+    background:var(--field);
+    border:1px solid var(--card-edge);
+    border-radius:10px;
+    padding:0 16px;
+    color:var(--muted);
+    font-size:13px;
+    cursor:pointer;
+  }
+  .city-results{
+    margin-top:8px;
+    text-align:left;
+  }
+  .city-option{
+    padding:9px 12px;
+    border-radius:8px;
+    font-size:13px;
+    color:var(--muted);
+    cursor:pointer;
+  }
+  .city-option:hover{
+    background:var(--field);
+    color:var(--text);
+  }
+  .change-location{
+    margin-top:16px;
+    background:none;
+    border:none;
+    color:var(--muted-dim);
+    font-size:11px;
+    text-decoration:underline;
+    text-underline-offset:3px;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .change-location:hover{ color:var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="widget">
+  <div class="card" id="card">
+    <div class="loading">Getting your weather…</div>
+  </div>
+</div>
+
+<script>
+  // Weather code groups -> icon + plain-language description
+  // Based on Open-Meteo WMO weather codes
+  function interpretCode(code, isDay){
+    if(code === 0) return { icon:'sun', label: isDay ? 'Clear and sunny' : 'Clear night sky' };
+    if([1,2].includes(code)) return { icon:'partly', label:'Mostly clear with a few clouds' };
+    if(code === 3) return { icon:'cloud', label:'Cloudy and overcast' };
+    if([45,48].includes(code)) return { icon:'fog', label:'Foggy and hazy' };
+    if([51,53,55,56,57].includes(code)) return { icon:'drizzle', label:'Light drizzle in the air' };
+    if([61,63,66].includes(code)) return { icon:'rain', label:'Rainy — expect wet weather' };
+    if([65,67].includes(code)) return { icon:'heavyrain', label:'Heavy rain — stay dry out there' };
+    if([71,73,75,77].includes(code)) return { icon:'snow', label:'Snowy and cold' };
+    if([80,81].includes(code)) return { icon:'rain', label:'Passing showers likely' };
+    if(code === 82) return { icon:'heavyrain', label:'Intense showers expected' };
+    if([95,96,99].includes(code)) return { icon:'storm', label:'Thunderstorms rolling through' };
+    return { icon:'cloud', label:'Mixed conditions today' };
+  }
+
+  function tipFor(icon, tempC, precipProb){
+    if(icon==='rain' || icon==='drizzle' || icon==='heavyrain' || icon==='storm' || precipProb >= 50)
+      return '☂️ Bring an umbrella';
+    if(icon==='snow') return '🧣 Bundle up, it\'s cold';
+    if(tempC <= 12) return '🧥 Carry a jacket';
+    if(tempC >= 32) return '💧 Stay hydrated, it\'s hot';
+    if(icon==='sun' && tempC >= 24) return '🕶️ Good day to be outside';
+    return '👍 Nothing unusual — dress normally';
+  }
+
+  const ICONS = {
+    sun: `<svg width="72" height="72" viewBox="0 0 72 72"><circle cx="36" cy="36" r="16" fill="var(--sun)"/><g stroke="var(--sun)" stroke-width="3" stroke-linecap="round"><line x1="36" y1="6" x2="36" y2="14"/><line x1="36" y1="58" x2="36" y2="66"/><line x1="6" y1="36" x2="14" y2="36"/><line x1="58" y1="36" x2="66" y2="36"/><line x1="14.9" y1="14.9" x2="20.4" y2="20.4"/><line x1="51.6" y1="51.6" x2="57.1" y2="57.1"/><line x1="14.9" y1="57.1" x2="20.4" y2="51.6"/><line x1="51.6" y1="20.4" x2="57.1" y2="14.9"/></g></svg>`,
+    partly: `<svg width="72" height="72" viewBox="0 0 72 72"><circle cx="28" cy="28" r="12" fill="var(--sun)"/><g stroke="var(--sun)" stroke-width="2.5" stroke-linecap="round"><line x1="28" y1="6" x2="28" y2="11"/><line x1="10" y1="28" x2="15" y2="28"/><line x1="13.6" y1="13.6" x2="17.1" y2="17.1"/></g><path d="M22 50 a13 13 0 0 1 25-6 a10 10 0 0 1 -2 20 h-23 a9 9 0 0 1 0-18 z" fill="var(--cloud)"/></svg>`,
+    cloud: `<svg width="72" height="72" viewBox="0 0 72 72"><path d="M16 46 a15 15 0 0 1 29-7 a11 11 0 0 1 -2 22 h-27 a10 10 0 0 1 0-20 z" fill="var(--cloud)"/></svg>`,
+    fog: `<svg width="72" height="72" viewBox="0 0 72 72"><path d="M18 30 a15 15 0 0 1 29-7 a11 11 0 0 1 -2 20 h-27 a10 10 0 0 1 0-18 z" fill="var(--cloud)" opacity="0.7"/><g stroke="var(--muted)" stroke-width="3" stroke-linecap="round"><line x1="12" y1="50" x2="60" y2="50"/><line x1="18" y1="58" x2="54" y2="58"/></g></svg>`,
+    drizzle: `<svg width="72" height="72" viewBox="0 0 72 72"><path d="M16 34 a15 15 0 0 1 29-7 a11 11 0 0 1 -2 20 h-27 a10 10 0 0 1 0-18 z" fill="var(--cloud)"/><g stroke="var(--rain)" stroke-width="3" stroke-linecap="round"><line x1="24" y1="54" x2="21" y2="62"/><line x1="36" y1="54" x2="33" y2="62"/><line x1="48" y1="54" x2="45" y2="62"/></g></svg>`,
+    rain: `<svg width="72" height="72" viewBox="0 0 72 72"><path d="M16 32 a15 15 0 0 1 29-7 a11 11 0 0 1 -2 20 h-27 a10 10 0 0 1 0-18 z" fill="var(--cloud)"/><g stroke="var(--rain)" stroke-width="3.5" stroke-linecap="round"><line x1="22" y1="52" x2="18" y2="64"/><line x1="34" y1="52" x2="30" y2="64"/><line x1="46" y1="52" x2="42" y2="64"/><line x1="58" y1="52" x2="54" y2="64"/></g></svg>`,
+    heavyrain: `<svg width="72" height="72" viewBox="0 0 72 72"><path d="M16 30 a15 15 0 0 1 29-7 a11 11 0 0 1 -2 20 h-27 a10 10 0 0 1 0-18 z" fill="var(--muted-dim)"/><g stroke="var(--rain)" stroke-width="4" stroke-linecap="round"><line x1="20" y1="50" x2="15" y2="65"/><line x1="32" y1="50" x2="27" y2="65"/><line x1="44" y1="50" x2="39" y2="65"/><line x1="56" y1="50" x2="51" y2="65"/></g></svg>`,
+    snow: `<svg width="72" height="72" viewBox="0 0 72 72"><path d="M16 30 a15 15 0 0 1 29-7 a11 11 0 0 1 -2 20 h-27 a10 10 0 0 1 0-18 z" fill="var(--cloud)"/><g fill="#F1EEE5"><circle cx="24" cy="58" r="3"/><circle cx="36" cy="52" r="3"/><circle cx="48" cy="58" r="3"/></g></svg>`,
+    storm: `<svg width="72" height="72" viewBox="0 0 72 72"><path d="M16 28 a15 15 0 0 1 29-7 a11 11 0 0 1 -2 20 h-27 a10 10 0 0 1 0-18 z" fill="var(--muted-dim)"/><polygon points="38,46 28,62 36,62 32,74 48,54 39,54" fill="var(--accent)"/></svg>`
+  };
+
+  const card = document.getElementById('card');
+
+  function render(data, placeName){
+    const cur = data.current;
+    const daily = data.daily;
+    const info = interpretCode(cur.weather_code, cur.is_day);
+    const tempC = Math.round(cur.temperature_2m);
+    const hi = Math.round(daily.temperature_2m_max[0]);
+    const lo = Math.round(daily.temperature_2m_min[0]);
+    const precipProb = daily.precipitation_probability_max ? daily.precipitation_probability_max[0] : 0;
+    const tip = tipFor(info.icon, tempC, precipProb);
+
+    card.innerHTML = `
+      <div class="place">${placeName}</div>
+      <div class="icon-wrap">${ICONS[info.icon]}</div>
+      <div class="temp">${tempC}°</div>
+      <div class="range">H:${hi}° L:${lo}°</div>
+      <p class="sentence">${info.label}</p>
+      <div class="tip">${tip}</div>
+      <div><button class="change-location" id="changeLocBtn">change location</button></div>
+    `;
+    document.getElementById('changeLocBtn').addEventListener('click', showCitySearch);
+  }
+
+  function showCitySearch(message){
+    card.innerHTML = `
+      ${message ? `<div class="error">${message}</div>` : ''}
+      <button class="retry-btn" id="retryBtn">Use my location</button>
+      <div class="city-search">
+        <input type="text" id="cityInput" placeholder="Or type a city name…">
+        <button id="citySearchBtn">Search</button>
+      </div>
+      <div class="city-results" id="cityResults"></div>
+    `;
+    document.getElementById('retryBtn').addEventListener('click', init);
+    document.getElementById('citySearchBtn').addEventListener('click', searchCity);
+    document.getElementById('cityInput').addEventListener('keydown', e=>{
+      if(e.key==='Enter') searchCity();
+    });
+  }
+
+  async function searchCity(){
+    const q = document.getElementById('cityInput').value.trim();
+    if(!q) return;
+    const resultsEl = document.getElementById('cityResults');
+    resultsEl.innerHTML = '<div class="city-option">Searching…</div>';
+    try{
+      const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=5`);
+      const data = await res.json();
+      if(!data.results || data.results.length===0){
+        resultsEl.innerHTML = '<div class="city-option">No matches found — try another spelling.</div>';
+        return;
+      }
+      resultsEl.innerHTML = data.results.map(r=>{
+        const label = [r.name, r.admin1, r.country].filter(Boolean).join(', ');
+        return `<div class="city-option" data-lat="${r.latitude}" data-lon="${r.longitude}" data-label="${label}">${label}</div>`;
+      }).join('');
+      resultsEl.querySelectorAll('.city-option[data-lat]').forEach(el=>{
+        el.addEventListener('click', ()=>{
+          const lat = el.dataset.lat, lon = el.dataset.lon, label = el.dataset.label;
+          localStorage.setItem('weatherWidgetLocation', JSON.stringify({lat, lon, label}));
+          card.innerHTML = '<div class="loading">Getting your weather…</div>';
+          fetchWeather(lat, lon, label);
+        });
+      });
+    }catch(e){
+      resultsEl.innerHTML = '<div class="city-option">Search failed — check your connection.</div>';
+    }
+  }
+
+  async function fetchWeather(lat, lon, placeName){
+    try{
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto`;
+      const res = await fetch(url);
+      const data = await res.json();
+      render(data, placeName);
+    }catch(e){
+      showCitySearch("Couldn't load weather right now.");
+    }
+  }
+
+  async function reverseGeocode(lat, lon){
+    try{
+      const res = await fetch(`https://geocoding-api.open-meteo.com/v1/reverse?latitude=${lat}&longitude=${lon}&count=1`);
+      const data = await res.json();
+      if(data.results && data.results[0]) return data.results[0].name;
+    }catch(e){}
+    return 'Your location';
+  }
+
+  function init(){
+    card.innerHTML = '<div class="loading">Getting your weather…</div>';
+
+    // Use a previously searched/saved location if one exists
+    const saved = localStorage.getItem('weatherWidgetLocation');
+    if(saved){
+      try{
+        const { lat, lon, label } = JSON.parse(saved);
+        fetchWeather(lat, lon, label);
+        return;
+      }catch(e){}
+    }
+
+    detectByIP();
+  }
+
+  async function detectByIP(){
+    try{
+      const res = await fetch('https://ipapi.co/json/');
+      const data = await res.json();
+      if(data && data.latitude && data.longitude){
+        const label = [data.city, data.country_name].filter(Boolean).join(', ');
+        fetchWeather(data.latitude, data.longitude, label || 'Your area');
+        return;
+      }
+      throw new Error('no coords');
+    }catch(e){
+      showCitySearch('Couldn\'t auto-detect your location — search your city instead.');
+    }
+  }
+
+  init();
+</script>
+
+</body>
+</html>
