@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Focus Timer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#1B1F3B;
+    --card:#242952;
+    --card-edge:#2F356B;
+    --field:#1F2447;
+    --text:#F1EEE5;
+    --muted:#9098C4;
+    --muted-dim:#6870A0;
+    --accent:#E8C468;
+    --ring-track:#2F356B;
+  }
+  *{ box-sizing:border-box; }
+  html,body{
+    margin:0; padding:0;
+    background:var(--bg);
+    font-family:'Inter',sans-serif;
+    color:var(--text);
+    -webkit-font-smoothing:antialiased;
+  }
+  .widget{
+    width:100%;
+    max-width:420px;
+    margin:0 auto;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:40px 24px;
+  }
+  .card{
+    width:100%;
+    text-align:center;
+  }
+
+  /* ---- Timer view ---- */
+  .eyebrow{
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--muted);
+    font-weight:600;
+    margin-bottom:22px;
+  }
+  .ring-wrap{
+    position:relative;
+    width:230px;
+    height:230px;
+    margin:0 auto 26px;
+  }
+  svg{ transform:rotate(-90deg); }
+  .ring-bg{ stroke:var(--ring-track); }
+  .ring-progress{
+    stroke:var(--accent);
+    stroke-linecap:round;
+    transition:stroke-dashoffset 1s linear;
+  }
+  .ring-center{
+    position:absolute;
+    top:0; left:0; right:0; bottom:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+  }
+  .time-display{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:48px;
+    letter-spacing:-0.01em;
+  }
+  .time-sub{
+    font-size:11px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.08em;
+    margin-top:4px;
+  }
+
+  .tags{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:8px;
+    margin-bottom:26px;
+  }
+  .tag-chip{
+    font-size:12px;
+    padding:8px 14px;
+    border-radius:20px;
+    border:1px solid var(--card-edge);
+    color:var(--muted);
+    cursor:pointer;
+    font-weight:500;
+    background:var(--field);
+    user-select:none;
+    transition:all .15s ease;
+  }
+  .tag-chip.active{
+    background:var(--accent);
+    color:var(--bg);
+    border-color:var(--accent);
+    font-weight:600;
+  }
+
+  .controls{
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    margin-bottom:20px;
+  }
+  .btn{
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    font-weight:600;
+    padding:13px 30px;
+    border-radius:12px;
+    border:none;
+    cursor:pointer;
+  }
+  .btn-primary{
+    background:var(--accent);
+    color:var(--bg);
+  }
+  .btn-primary:hover{ opacity:0.9; }
+  .btn-secondary{
+    background:var(--field);
+    color:var(--muted);
+    border:1px solid var(--card-edge);
+  }
+  .btn-secondary:hover{ color:var(--text); }
+
+  .history-link{
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:13px;
+    text-decoration:underline;
+    text-underline-offset:3px;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .history-link:hover{ color:var(--text); }
+
+  /* ---- History view ---- */
+  .history-view{ display:none; text-align:left; }
+  .history-view.open{ display:block; }
+  .timer-view.hidden{ display:none; }
+
+  .history-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:6px;
+  }
+  .history-header h2{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:22px;
+    margin:0;
+  }
+  .back-btn{
+    background:none;
+    border:none;
+    color:var(--muted);
+    font-size:13px;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .back-btn:hover{ color:var(--text); }
+  .today-total{
+    font-size:13px;
+    color:var(--muted);
+    margin-bottom:20px;
+  }
+  .today-total span{ color:var(--accent); font-weight:600; }
+
+  .session-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    max-height:360px;
+    overflow-y:auto;
+  }
+  .session-item{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--card);
+    border:1px solid var(--card-edge);
+    border-radius:10px;
+    padding:12px 14px;
+  }
+  .session-left{
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .session-tag{
+    font-size:10px;
+    letter-spacing:0.04em;
+    text-transform:uppercase;
+    font-weight:600;
+    padding:4px 9px;
+    border-radius:6px;
+    background:var(--accent);
+    color:var(--bg);
+  }
+  .session-item.incomplete .session-tag{
+    background:var(--card-edge);
+    color:var(--muted);
+  }
+  .session-when{
+    font-size:12px;
+    color:var(--muted-dim);
+  }
+  .session-dur{
+    font-size:13px;
+    font-weight:600;
+    color:var(--text);
+  }
+  .session-item.incomplete .session-dur{ color:var(--muted); }
+  .empty-history{
+    text-align:center;
+    color:var(--muted-dim);
+    font-size:13px;
+    padding:40px 0;
+  }
+</style>
+</head>
+<body>
+
+<div class="widget">
+  <div class="card">
+
+    <!-- TIMER VIEW -->
+    <div class="timer-view" id="timerView">
+      <div class="eyebrow" id="statusLabel">Ready to focus</div>
+
+      <div class="ring-wrap">
+        <svg width="230" height="230">
+          <circle class="ring-bg" cx="115" cy="115" r="100" stroke-width="10" fill="none"/>
+          <circle class="ring-progress" id="ringProgress" cx="115" cy="115" r="100" stroke-width="10" fill="none"
+                  stroke-dasharray="628.3" stroke-dashoffset="0"/>
+        </svg>
+        <div class="ring-center">
+          <div class="time-display" id="timeDisplay">25:00</div>
+          <div class="time-sub" id="tagDisplay">no tag</div>
+        </div>
+      </div>
+
+      <div class="tags" id="tagPicker">
+        <div class="tag-chip active" data-tag="none">No tag</div>
+        <div class="tag-chip" data-tag="academic">Academic</div>
+        <div class="tag-chip" data-tag="personal">Personal</div>
+        <div class="tag-chip" data-tag="reading">Reading</div>
+        <div class="tag-chip" data-tag="work">Work</div>
+      </div>
+
+      <div class="controls">
+        <button class="btn btn-primary" id="startBtn">Start</button>
+        <button class="btn btn-secondary" id="resetBtn">Reset</button>
+      </div>
+
+      <button class="history-link" id="openHistory">View history →</button>
+    </div>
+
+    <!-- HISTORY VIEW -->
+    <div class="history-view" id="historyView">
+      <div class="history-header">
+        <h2>History</h2>
+        <button class="back-btn" id="closeHistory">← back</button>
+      </div>
+      <div class="today-total" id="todayTotal">0 min focused today</div>
+      <div class="session-list" id="sessionList"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'focusTimerWidget';
+  const SESSION_LENGTH = 25 * 60; // 25 min in seconds
+  const CIRCUMFERENCE = 2 * Math.PI * 100;
+
+  let timeLeft = SESSION_LENGTH;
+  let running = false;
+  let intervalId = null;
+  let activeTag = 'none';
+  let sessionStart = null;
+
+  const timeDisplay = document.getElementById('timeDisplay');
+  const tagDisplay = document.getElementById('tagDisplay');
+  const statusLabel = document.getElementById('statusLabel');
+  const ringProgress = document.getElementById('ringProgress');
+  const startBtn = document.getElementById('startBtn');
+  const resetBtn = document.getElementById('resetBtn');
+
+  document.getElementById('ringProgress').setAttribute('stroke-dasharray', CIRCUMFERENCE);
+
+  function loadSessions(){
+    try{
+      const s = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if(Array.isArray(s)) return s;
+    }catch(e){}
+    return [];
+  }
+  function saveSessions(sessions){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(sessions));
+  }
+
+  function formatTime(sec){
+    const m = Math.floor(sec/60).toString().padStart(2,'0');
+    const s = (sec%60).toString().padStart(2,'0');
+    return `${m}:${s}`;
+  }
+
+  function updateDisplay(){
+    timeDisplay.textContent = formatTime(timeLeft);
+    const offset = CIRCUMFERENCE * (timeLeft / SESSION_LENGTH);
+    ringProgress.style.strokeDashoffset = CIRCUMFERENCE - offset;
+    tagDisplay.textContent = activeTag === 'none' ? 'no tag' : activeTag;
+  }
+
+  document.getElementById('tagPicker').addEventListener('click', e=>{
+    const chip = e.target.closest('.tag-chip');
+    if(!chip || running) return; // lock tag once running
+    document.querySelectorAll('.tag-chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    activeTag = chip.dataset.tag;
+    updateDisplay();
+  });
+
+  function logSession(completed){
+    const sessions = loadSessions();
+    const durationMin = completed
+      ? Math.round(SESSION_LENGTH/60)
+      : Math.round((SESSION_LENGTH - timeLeft)/60);
+    if(durationMin < 1) return; // don't log near-zero attempts
+    sessions.unshift({
+      tag: activeTag,
+      minutes: durationMin,
+      completed: completed,
+      timestamp: new Date().toISOString()
+    });
+    saveSessions(sessions);
+  }
+
+  function startTimer(){
+    running = true;
+    statusLabel.textContent = 'Focusing…';
+    startBtn.textContent = 'Pause';
+    intervalId = setInterval(()=>{
+      timeLeft--;
+      updateDisplay();
+      if(timeLeft <= 0){
+        clearInterval(intervalId);
+        running = false;
+        logSession(true);
+        statusLabel.textContent = 'Session complete 🎉';
+        startBtn.textContent = 'Start';
+        timeLeft = SESSION_LENGTH;
+        setTimeout(updateDisplay, 50);
+      }
+    }, 1000);
+  }
+
+  function pauseTimer(){
+    running = false;
+    clearInterval(intervalId);
+    statusLabel.textContent = 'Paused';
+    startBtn.textContent = 'Resume';
+  }
+
+  startBtn.addEventListener('click', ()=>{
+    if(!running){
+      startTimer();
+    } else {
+      pauseTimer();
+    }
+  });
+
+  resetBtn.addEventListener('click', ()=>{
+    const wasRunning = running || (timeLeft < SESSION_LENGTH);
+    if(wasRunning && timeLeft < SESSION_LENGTH){
+      logSession(false); // log partial/abandoned session
+    }
+    clearInterval(intervalId);
+    running = false;
+    timeLeft = SESSION_LENGTH;
+    statusLabel.textContent = 'Ready to focus';
+    startBtn.textContent = 'Start';
+    updateDisplay();
+  });
+
+  // ---- History view ----
+  const timerView = document.getElementById('timerView');
+  const historyView = document.getElementById('historyView');
+
+  document.getElementById('openHistory').addEventListener('click', ()=>{
+    timerView.classList.add('hidden');
+    historyView.classList.add('open');
+    renderHistory();
+  });
+  document.getElementById('closeHistory').addEventListener('click', ()=>{
+    historyView.classList.remove('open');
+    timerView.classList.remove('hidden');
+  });
+
+  function renderHistory(){
+    const sessions = loadSessions();
+    const list = document.getElementById('sessionList');
+    const todayStr = new Date().toDateString();
+
+    const todayMinutes = sessions
+      .filter(s => new Date(s.timestamp).toDateString() === todayStr)
+      .reduce((sum,s)=>sum + s.minutes, 0);
+    document.getElementById('todayTotal').innerHTML = `<span>${todayMinutes} min</span> focused today`;
+
+    if(sessions.length === 0){
+      list.innerHTML = '<div class="empty-history">No sessions logged yet — finish a focus session to see it here.</div>';
+      return;
+    }
+
+    list.innerHTML = sessions.map(s=>{
+      const d = new Date(s.timestamp);
+      const isToday = d.toDateString() === todayStr;
+      const dateLabel = isToday
+        ? d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})
+        : d.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ', ' + d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+      return `
+        <div class="session-item ${s.completed ? '' : 'incomplete'}">
+          <div class="session-left">
+            <span class="session-tag">${s.tag === 'none' ? 'untagged' : s.tag}</span>
+            <span class="session-when">${dateLabel}</span>
+          </div>
+          <span class="session-dur">${s.minutes}m${s.completed ? '' : ' (stopped early)'}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
+  updateDisplay();
+</script>
+
+</body>
+</html>
