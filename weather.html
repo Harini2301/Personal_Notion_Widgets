@@ -4,163 +4,190 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Weather</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#1B1F3B;
-    --card:#242952;
-    --card-edge:#2F356B;
-    --field:#1F2447;
-    --text:#F1EEE5;
-    --muted:#9098C4;
-    --muted-dim:#6870A0;
-    --accent:#E8C468;
-    --sun:#E8C468;
-    --cloud:#9098C4;
-    --rain:#6C9BC4;
+    --text:#37352f;
+    --text-muted:#787774;
+    --text-faint:#9b9a97;
+    --line:rgba(55,53,47,0.12);
+    --hover:rgba(55,53,47,0.06);
+    --field:rgba(55,53,47,0.055);
+    --accent:#d9730d;
+    --cloud:#b4b2a8;
+    --rain:#337ea9;
+    --sun:#d9730d;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --text:#e9e9e7;
+      --text-muted:#9b9b9b;
+      --text-faint:#767676;
+      --line:rgba(255,255,255,0.13);
+      --hover:rgba(255,255,255,0.06);
+      --field:rgba(255,255,255,0.065);
+      --accent:#e0a032;
+      --cloud:#8f8f8f;
+      --rain:#5b9bd5;
+      --sun:#e0a032;
+    }
   }
   *{ box-sizing:border-box; }
   html,body{
     margin:0; padding:0;
-    background:var(--bg);
-    font-family:'Inter',sans-serif;
+    background:transparent;
+    font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     color:var(--text);
     -webkit-font-smoothing:antialiased;
+    font-size:14px;
   }
   .widget{
     width:100%;
-    max-width:360px;
-    margin:0 auto;
-    padding:40px 24px;
-    min-height:100vh;
-    display:flex;
-    align-items:center;
-    justify-content:center;
+    padding:2px;
   }
   .card{
     width:100%;
-    text-align:center;
-    background:var(--card);
-    border:1px solid var(--card-edge);
-    border-radius:22px;
-    padding:34px 28px;
+    border-radius:6px;
+    padding:10px 12px;
   }
-  .place{
-    font-size:12px;
-    letter-spacing:0.1em;
-    text-transform:uppercase;
-    color:var(--muted);
-    font-weight:600;
-    margin-bottom:18px;
-  }
-  .loading{
-    color:var(--muted-dim);
+
+  /* --- Loading / error states --- */
+  .loading, .error{
+    color:var(--text-faint);
     font-size:13px;
-    padding:30px 0;
+    padding:6px 2px;
   }
-  .icon-wrap{ margin-bottom:14px; }
-  .temp{
-    font-family:'Fraunces',serif;
+
+  /* --- Main compact row layout --- */
+  .row{
+    display:flex;
+    align-items:center;
+    gap:12px;
+  }
+  .icon-wrap{ flex:0 0 auto; line-height:0; }
+  .icon-wrap svg{ width:34px; height:34px; display:block; }
+
+  .main-col{ flex:1 1 auto; min-width:0; }
+  .place{
+    font-size:11px;
+    letter-spacing:0.02em;
+    text-transform:uppercase;
+    color:var(--text-faint);
     font-weight:600;
-    font-size:58px;
+    margin-bottom:2px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .temp-line{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+  }
+  .temp{
+    font-weight:600;
+    font-size:22px;
     line-height:1;
-    margin:0 0 6px;
   }
   .range{
     font-size:12px;
-    color:var(--muted);
-    margin-bottom:20px;
+    color:var(--text-muted);
   }
+
   .sentence{
-    font-family:'Fraunces',serif;
-    font-size:18px;
-    font-weight:500;
-    line-height:1.4;
-    color:var(--text);
-    margin:0 0 18px;
-    padding:0 6px;
+    font-size:13px;
+    color:var(--text-muted);
+    margin:8px 0 0;
+    padding-top:8px;
+    border-top:1px solid var(--line);
+  }
+
+  .footer-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-top:8px;
   }
   .tip{
-    display:inline-flex;
-    align-items:center;
-    gap:8px;
-    background:var(--field);
-    border:1px solid var(--card-edge);
-    border-radius:20px;
-    padding:9px 16px;
-    font-size:13px;
-    color:var(--muted);
+    font-size:12px;
+    color:var(--text-muted);
   }
-  .error{
-    color:var(--muted-dim);
-    font-size:13px;
-    padding:10px 0 18px;
-  }
-  .retry-btn{
-    margin-top:4px;
-    background:var(--accent);
+  .change-location{
+    background:none;
     border:none;
-    border-radius:10px;
-    padding:10px 20px;
-    color:var(--bg);
-    font-weight:600;
+    color:var(--text-faint);
+    font-size:11px;
+    cursor:pointer;
+    font-family:inherit;
+    padding:3px 6px;
+    border-radius:4px;
+    margin:-3px -6px;
+  }
+  .change-location:hover{
+    background:var(--hover);
+    color:var(--text-muted);
+  }
+
+  /* --- City search state --- */
+  .retry-btn{
+    background:var(--field);
+    border:1px solid var(--line);
+    border-radius:5px;
+    padding:7px 12px;
+    color:var(--text);
+    font-weight:500;
     font-size:13px;
     cursor:pointer;
+    font-family:inherit;
+    width:100%;
   }
+  .retry-btn:hover{ background:var(--hover); }
+
   .city-search{
-    margin-top:16px;
+    margin-top:8px;
     display:flex;
-    gap:8px;
+    gap:6px;
   }
   .city-search input{
     flex:1;
+    min-width:0;
     background:var(--field);
-    border:1px solid var(--card-edge);
-    border-radius:10px;
-    padding:10px 12px;
+    border:1px solid var(--line);
+    border-radius:5px;
+    padding:7px 9px;
     color:var(--text);
-    font-family:'Inter',sans-serif;
+    font-family:inherit;
     font-size:13px;
     outline:none;
   }
-  .city-search input::placeholder{ color:var(--muted-dim); }
+  .city-search input::placeholder{ color:var(--text-faint); }
+  .city-search input:focus{ border-color:var(--text-faint); }
   .city-search button{
     background:var(--field);
-    border:1px solid var(--card-edge);
-    border-radius:10px;
-    padding:0 16px;
-    color:var(--muted);
+    border:1px solid var(--line);
+    border-radius:5px;
+    padding:0 12px;
+    color:var(--text-muted);
     font-size:13px;
     cursor:pointer;
+    font-family:inherit;
   }
+  .city-search button:hover{ background:var(--hover); }
+
   .city-results{
-    margin-top:8px;
+    margin-top:4px;
     text-align:left;
   }
   .city-option{
-    padding:9px 12px;
-    border-radius:8px;
+    padding:7px 8px;
+    border-radius:4px;
     font-size:13px;
-    color:var(--muted);
+    color:var(--text-muted);
     cursor:pointer;
   }
   .city-option:hover{
-    background:var(--field);
+    background:var(--hover);
     color:var(--text);
   }
-  .change-location{
-    margin-top:16px;
-    background:none;
-    border:none;
-    color:var(--muted-dim);
-    font-size:11px;
-    text-decoration:underline;
-    text-underline-offset:3px;
-    cursor:pointer;
-    font-family:'Inter',sans-serif;
-  }
-  .change-location:hover{ color:var(--muted); }
 </style>
 </head>
 <body>
@@ -203,12 +230,12 @@
     sun: `<svg width="72" height="72" viewBox="0 0 72 72"><circle cx="36" cy="36" r="16" fill="var(--sun)"/><g stroke="var(--sun)" stroke-width="3" stroke-linecap="round"><line x1="36" y1="6" x2="36" y2="14"/><line x1="36" y1="58" x2="36" y2="66"/><line x1="6" y1="36" x2="14" y2="36"/><line x1="58" y1="36" x2="66" y2="36"/><line x1="14.9" y1="14.9" x2="20.4" y2="20.4"/><line x1="51.6" y1="51.6" x2="57.1" y2="57.1"/><line x1="14.9" y1="57.1" x2="20.4" y2="51.6"/><line x1="51.6" y1="20.4" x2="57.1" y2="14.9"/></g></svg>`,
     partly: `<svg width="72" height="72" viewBox="0 0 72 72"><circle cx="28" cy="28" r="12" fill="var(--sun)"/><g stroke="var(--sun)" stroke-width="2.5" stroke-linecap="round"><line x1="28" y1="6" x2="28" y2="11"/><line x1="10" y1="28" x2="15" y2="28"/><line x1="13.6" y1="13.6" x2="17.1" y2="17.1"/></g><path d="M22 50 a13 13 0 0 1 25-6 a10 10 0 0 1 -2 20 h-23 a9 9 0 0 1 0-18 z" fill="var(--cloud)"/></svg>`,
     cloud: `<svg width="72" height="72" viewBox="0 0 72 72"><path d="M16 46 a15 15 0 0 1 29-7 a11 11 0 0 1 -2 22 h-27 a10 10 0 0 1 0-20 z" fill="var(--cloud)"/></svg>`,
-    fog: `<svg width="72" height="72" viewBox="0 0 72 72"><path d="M18 30 a15 15 0 0 1 29-7 a11 11 0 0 1 -2 20 h-27 a10 10 0 0 1 0-18 z" fill="var(--cloud)" opacity="0.7"/><g stroke="var(--muted)" stroke-width="3" stroke-linecap="round"><line x1="12" y1="50" x2="60" y2="50"/><line x1="18" y1="58" x2="54" y2="58"/></g></svg>`,
+    fog: `<svg width="72" height="72" viewBox="0 0 72 72"><path d="M18 30 a15 15 0 0 1 29-7 a11 11 0 0 1 -2 20 h-27 a10 10 0 0 1 0-18 z" fill="var(--cloud)" opacity="0.7"/><g stroke="var(--text-muted)" stroke-width="3" stroke-linecap="round"><line x1="12" y1="50" x2="60" y2="50"/><line x1="18" y1="58" x2="54" y2="58"/></g></svg>`,
     drizzle: `<svg width="72" height="72" viewBox="0 0 72 72"><path d="M16 34 a15 15 0 0 1 29-7 a11 11 0 0 1 -2 20 h-27 a10 10 0 0 1 0-18 z" fill="var(--cloud)"/><g stroke="var(--rain)" stroke-width="3" stroke-linecap="round"><line x1="24" y1="54" x2="21" y2="62"/><line x1="36" y1="54" x2="33" y2="62"/><line x1="48" y1="54" x2="45" y2="62"/></g></svg>`,
     rain: `<svg width="72" height="72" viewBox="0 0 72 72"><path d="M16 32 a15 15 0 0 1 29-7 a11 11 0 0 1 -2 20 h-27 a10 10 0 0 1 0-18 z" fill="var(--cloud)"/><g stroke="var(--rain)" stroke-width="3.5" stroke-linecap="round"><line x1="22" y1="52" x2="18" y2="64"/><line x1="34" y1="52" x2="30" y2="64"/><line x1="46" y1="52" x2="42" y2="64"/><line x1="58" y1="52" x2="54" y2="64"/></g></svg>`,
-    heavyrain: `<svg width="72" height="72" viewBox="0 0 72 72"><path d="M16 30 a15 15 0 0 1 29-7 a11 11 0 0 1 -2 20 h-27 a10 10 0 0 1 0-18 z" fill="var(--muted-dim)"/><g stroke="var(--rain)" stroke-width="4" stroke-linecap="round"><line x1="20" y1="50" x2="15" y2="65"/><line x1="32" y1="50" x2="27" y2="65"/><line x1="44" y1="50" x2="39" y2="65"/><line x1="56" y1="50" x2="51" y2="65"/></g></svg>`,
-    snow: `<svg width="72" height="72" viewBox="0 0 72 72"><path d="M16 30 a15 15 0 0 1 29-7 a11 11 0 0 1 -2 20 h-27 a10 10 0 0 1 0-18 z" fill="var(--cloud)"/><g fill="#F1EEE5"><circle cx="24" cy="58" r="3"/><circle cx="36" cy="52" r="3"/><circle cx="48" cy="58" r="3"/></g></svg>`,
-    storm: `<svg width="72" height="72" viewBox="0 0 72 72"><path d="M16 28 a15 15 0 0 1 29-7 a11 11 0 0 1 -2 20 h-27 a10 10 0 0 1 0-18 z" fill="var(--muted-dim)"/><polygon points="38,46 28,62 36,62 32,74 48,54 39,54" fill="var(--accent)"/></svg>`
+    heavyrain: `<svg width="72" height="72" viewBox="0 0 72 72"><path d="M16 30 a15 15 0 0 1 29-7 a11 11 0 0 1 -2 20 h-27 a10 10 0 0 1 0-18 z" fill="var(--text-faint)"/><g stroke="var(--rain)" stroke-width="4" stroke-linecap="round"><line x1="20" y1="50" x2="15" y2="65"/><line x1="32" y1="50" x2="27" y2="65"/><line x1="44" y1="50" x2="39" y2="65"/><line x1="56" y1="50" x2="51" y2="65"/></g></svg>`,
+    snow: `<svg width="72" height="72" viewBox="0 0 72 72"><path d="M16 30 a15 15 0 0 1 29-7 a11 11 0 0 1 -2 20 h-27 a10 10 0 0 1 0-18 z" fill="var(--cloud)"/><g fill="var(--text)"><circle cx="24" cy="58" r="3"/><circle cx="36" cy="52" r="3"/><circle cx="48" cy="58" r="3"/></g></svg>`,
+    storm: `<svg width="72" height="72" viewBox="0 0 72 72"><path d="M16 28 a15 15 0 0 1 29-7 a11 11 0 0 1 -2 20 h-27 a10 10 0 0 1 0-18 z" fill="var(--text-faint)"/><polygon points="38,46 28,62 36,62 32,74 48,54 39,54" fill="var(--accent)"/></svg>`
   };
 
   const card = document.getElementById('card');
@@ -224,13 +251,21 @@
     const tip = tipFor(info.icon, tempC, precipProb);
 
     card.innerHTML = `
-      <div class="place">${placeName}</div>
-      <div class="icon-wrap">${ICONS[info.icon]}</div>
-      <div class="temp">${tempC}°</div>
-      <div class="range">H:${hi}° L:${lo}°</div>
+      <div class="row">
+        <div class="icon-wrap">${ICONS[info.icon]}</div>
+        <div class="main-col">
+          <div class="place">${placeName}</div>
+          <div class="temp-line">
+            <span class="temp">${tempC}°</span>
+            <span class="range">H:${hi}° L:${lo}°</span>
+          </div>
+        </div>
+      </div>
       <p class="sentence">${info.label}</p>
-      <div class="tip">${tip}</div>
-      <div><button class="change-location" id="changeLocBtn">change location</button></div>
+      <div class="footer-row">
+        <span class="tip">${tip}</span>
+        <button class="change-location" id="changeLocBtn">change location</button>
+      </div>
     `;
     document.getElementById('changeLocBtn').addEventListener('click', showCitySearch);
   }
